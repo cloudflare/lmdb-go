@@ -338,12 +338,11 @@ func ExampleEnv() {
 	}
 	defer env.Close()
 
-	var dbi lmdb.DBI
 	err = env.Update(func(txn *lmdb.Txn) (err error) {
 		// open a database, creating it if necessary.  the database is stored
 		// outside the transaction via closure and can be use after the
 		// transaction is committed.
-		dbi, err = txn.OpenDBI("exampledb", lmdb.Create)
+		_, err = txn.OpenDBI("exampledb", lmdb.Create)
 		if err != nil {
 			return err
 		}
@@ -665,9 +664,8 @@ func ExampleCursor_Del() {
 func ExampleTxn_OpenDBI() {
 	// DBI handles can be saved after their opening transaction has committed
 	// and may be reused as long as the environment remains open.
-	var dbi lmdb.DBI
 	err = env.Update(func(txn *lmdb.Txn) (err error) {
-		dbi, err = txn.OpenDBI("dbfound", 0)
+		_, err = txn.OpenDBI("dbfound", 0)
 		return err
 	})
 	if err != nil {
@@ -679,9 +677,8 @@ func ExampleTxn_OpenDBI() {
 // didn't already exist.  An error will be returned if the name is occupied by
 // data written by Txn./Cursor.Put().
 func ExampleTxn_OpenDBI_create() {
-	var dbi lmdb.DBI
 	err = env.Update(func(txn *lmdb.Txn) (err error) {
-		dbi, err = txn.OpenDBI("dbnew", lmdb.Create)
+		_, err = txn.OpenDBI("dbnew", lmdb.Create)
 		return err
 	})
 	if err != nil {
@@ -693,9 +690,8 @@ func ExampleTxn_OpenDBI_create() {
 // NotFound.  If an application needs to handle this case the function
 // IsNotFound() will test an error for this condition.
 func ExampleTxn_OpenDBI_notFound() {
-	var dbi lmdb.DBI
 	err = env.Update(func(txn *lmdb.Txn) (err error) {
-		dbi, err = txn.OpenDBI("dbnotfound", 0)
+		_, err = txn.OpenDBI("dbnotfound", 0)
 		return err
 	})
 	log.Print(err) // mdb_dbi_open: MDB_NOTFOUND: No matching key/data pair found
@@ -706,9 +702,8 @@ func ExampleTxn_OpenDBI_notFound() {
 // return an error with errno DBsFull.  If an application needs to handle this
 // case then the function IsError() can test an error for this condition.
 func ExampleTxn_OpenDBI_dBsFull() {
-	var dbi lmdb.DBI
 	err = env.Update(func(txn *lmdb.Txn) (err error) {
-		dbi, err = txn.OpenDBI("dbnotexist", 0)
+		_, err = txn.OpenDBI("dbnotexist", 0)
 		return err
 	})
 	log.Print(err) // mdb_dbi_open: MDB_DBS_FULL: Environment maxdbs limit reached
@@ -717,9 +712,8 @@ func ExampleTxn_OpenDBI_dBsFull() {
 // Txn.OpenRoot does not need to be called with the Create flag.  And
 // Txn.OpenRoot, unlike Txn.OpenDBI, will never produce the error DBsFull.
 func ExampleTxn_OpenRoot() {
-	var dbi lmdb.DBI
 	err = env.Update(func(txn *lmdb.Txn) (err error) {
-		dbi, err = txn.OpenRoot(0)
+		_, err = txn.OpenRoot(0)
 		return err
 	})
 	if err != nil {
@@ -766,8 +760,7 @@ func ExampleTxn_OpenRoot_view() {
 func ExampleTxn_Get() {
 	// variables to hold data extracted from the database
 	var point struct{ X, Y int }
-	var str string
-	var p1, p2 []byte
+	var p1 []byte
 
 	// extract data from an example environment/database.  it is critical for application
 	// code to handle errors  but that is omitted here to save space.
@@ -775,7 +768,6 @@ func ExampleTxn_Get() {
 		// OK
 		// A []byte to string conversion will always copy the data
 		v, _ := txn.Get(DBIEx, []byte("mykey"))
-		str = string(v)
 
 		// OK
 		// If []byte is the desired data type then an explicit copy is required
@@ -794,7 +786,7 @@ func ExampleTxn_Get() {
 		// Assigning the result directly to p2 leaves its pointer volatile
 		// after the transaction completes which can result in unpredictable
 		// behavior.
-		p2, _ = txn.Get(DBIEx, []byte("mykey"))
+		_, _ = txn.Get(DBIEx, []byte("mykey"))
 
 		return nil
 	})
